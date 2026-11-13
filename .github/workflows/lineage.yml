@@ -1,12 +1,16 @@
+#
+# SPDX-FileCopyrightText: 2026 Hadad <hadad@linuxmail.org>
+# SPDX-License-Identifier: Apache-2.0
+#
+
 name: LineageOS
 
 on:
-  schedule:
-    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
 env:
   BRANCH: ${{ github.event.repository.default_branch }}
@@ -20,6 +24,7 @@ jobs:
         with:
           ref: ${{ env.BRANCH }}
           fetch-depth: 0
+          filter: blob:none
 
       - name: Git
         env:
@@ -48,3 +53,9 @@ jobs:
 
       - name: Push
         run: git push
+
+      - name: Cancel
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
